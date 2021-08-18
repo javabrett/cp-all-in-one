@@ -30,13 +30,18 @@ services:
       CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: $SCHEMA_REGISTRY_URL
       CONNECT_VALUE_CONVERTER_BASIC_AUTH_CREDENTIALS_SOURCE: USER_INFO
       CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_BASIC_AUTH_USER_INFO: $SCHEMA_REGISTRY_BASIC_AUTH_USER_INFO
-      CONNECT_PLUGIN_PATH: /usr/share/confluent-hub-components/confluentinc-kafka-connect-elasticsearch/
+      CONNECT_PLUGIN_PATH: /usr/share/confluent-hub-components/splunk-kafka-connect-splunk/
 
       # CONNECTOR_ properties are for the connector itself, example shown below
-      CONNECTOR_NAME: elasticsearch-sink-connector
-      CONNECTOR_CONNECTOR_CLASS: io.confluent.connect.elasticsearch.ElasticsearchSinkConnector
-      CONNECTOR_TYPE_NAME: _doc
-      CONNECTOR_TOPICS: test01
-      CONNECTOR_KEY_IGNORE: "true"
-      CONNECTOR_SCHEMA_IGNORE: "false"
-      CONNECTOR_CONNECTION_URL: http://elasticsearch:9200
+      CONNECTOR_NAME: SplunkSinkCCloudAuditLogs
+      CONNECTOR_CONNECTOR_CLASS: com.splunk.kafka.connect.SplunkSinkConnector
+      CONNECTOR_TOPICS: confluent-audit-log-events
+      CONNECTOR_TASKS_MAX: 1
+      CONNECTOR_SPLUNK_INDEXES: main
+      CONNECTOR_SPLUNK_HEC_URI: https://splunk:8088
+      CONNECTOR_SPLUNK_HEC_TOKEN: 3bca5f4c-1eff-4eee-9113-ea94c284478a
+      CONNECTOR_SPLUNK_SOURCETYPES: ccloud_audit_logs
+      CONNECTOR_CONFLUENT_TOPIC_BOOTSTRAP_SERVERS: $BOOTSTRAP_SERVERS
+      CONNECTOR_SPLUNK_HEC_SSL_VALIDATE_CERTS: "false"
+      CONNECTOR_CONFLUENT_TOPIC_REPLICATION_FACTOR: 1
+      CONNECTOR_VALUE_CONVERTER: org.apache.kafka.connect.storage.StringConverter

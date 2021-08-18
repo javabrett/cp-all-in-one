@@ -1,0 +1,16 @@
+{
+  "name": "SplunkSinkCCloudAuditLogs",
+  "config": {
+    "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+    "topics": "confluent-audit-log-events",
+    "tasks.max": 1,
+    "splunk.indexes": "main",
+    "splunk.hec.uri": "https://splunk:8088",
+    "splunk.hec.token": "3bca5f4c-1eff-4eee-9113-ea94c284478a",
+    "splunk.sourcetypes": "ccloud_audit_logs",
+    "confluent.topic.bootstrap.servers": "pkc-4ywp7.us-west-2.aws.confluent.cloud:9092",
+    "splunk.hec.ssl.validate.certs": "false",
+    "confluent.topic.replication.factor": 1,
+    "value.converter": "org.apache.kafka.connect.storage.StringConverter"
+  }
+}
