@@ -58,6 +58,36 @@ services:
     hostname: connect
     container_name: connect
     depends_on:
+      - tinyproxy
+    entrypoint:
+      - /bin/bash
+      - '-c'
+      - |
+          HEADER="Content-Type: application/json"
+          DATA=$$(cat <<EOF
+          {
+            "connector.class": "io.confluent.connect.jdbc.JdbcSourceConnector",
+            "tasks.max": "1",
+            "connection.url": "${JDBC_CONNECTOR_CONNECTION_URL}",
+            "connection.user": "${JDBC_CONNECTOR_CONNECTION_USER}",
+            "connection.password": "${JDBC_CONNECTOR_CONNECTION_PASSWORD}",
+            "dialect.name": "SapHanaDatabaseDialect",
+            "mode": "bulk",
+            "query": "SELECT * FROM SYS.DUMMY",
+            "topic.prefix": "dummy"
+          }
+          EOF
+          )
+
+          (
+            until curl -s -f http://connect:8083/; do sleep 1; done
+            echo "Sleeping"
+            sleep 30
+            curl -X PUT -H "$${HEADER}" --data "$${DATA}" http://connect:8083/connectors/jdbc-source-sap-with-tinyproxy/config
+          )&
+
+          exec /etc/confluent/docker/run
+    depends_on:
       - broker
       - schema-registry
     ports:
@@ -83,6 +113,12 @@ services:
       CONNECT_CONSUMER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringConsumerInterceptor"
       CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
       CONNECT_LOG4J_LOGGERS: org.apache.zookeeper=ERROR,org.I0Itec.zkclient=ERROR,org.reflections=ERROR
+      JDBC_CONNECTOR_CONNECTION_URL: ${JDBC_CONNECTOR_CONNECTION_URL}
+      JDBC_CONNECTOR_CONNECTION_USER: ${JDBC_CONNECTOR_CONNECTION_USER}
+      JDBC_CONNECTOR_CONNECTION_PASSWORD: ${JDBC_CONNECTOR_CONNECTION_PASSWORD}
+
+    volumes:
+      - ./connect-plugins/confluentinc-kafka-connect-jdbc-10.3.x:/usr/share/confluent-hub-components/confluentinc-kafka-connect-jdbc-10.3.x
 
   control-center:
     image: confluentinc/cp-enterprise-control-center:7.0.1
@@ -176,3 +212,12 @@ services:
       KAFKA_REST_BOOTSTRAP_SERVERS: 'broker:29092'
       KAFKA_REST_LISTENERS: "http://0.0.0.0:8082"
       KAFKA_REST_SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
+
+  tinyproxy:
+    image: monokal/tinyproxy
+    hostname: tinyproxy
+    container_name: tinyproxy
+    command:
+      - ANY
+    ports:
+      - "8888:8888"
